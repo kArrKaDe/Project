@@ -1,7 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public Animator animator;
+
     public float gravity = 9.8f;
 
     public float jumpForce;
@@ -12,7 +16,7 @@ public class PlayerController : MonoBehaviour
     public float maxSpeed;
     public float speed;
 
-    private float _fallVelocity = 0;
+    private float _fallVelocity = -1;
 
     private CharacterController _characterController;
 
@@ -27,13 +31,14 @@ public class PlayerController : MonoBehaviour
     {
         _characterController.Move(_moveVector * speed * Time.fixedDeltaTime);
 
+        _fallVelocity += gravity * Time.fixedDeltaTime;
+        _characterController.Move(Vector3.down * _fallVelocity * Time.deltaTime);
+        
         if (_characterController.isGrounded)
         {
             _fallVelocity = 0;
-        }
-
-        _fallVelocity += gravity * Time.fixedDeltaTime;
-        _characterController.Move(Vector3.down * _fallVelocity * Time.deltaTime); 
+            animator.SetBool("isGrounded", true);
+        } 
     }
 
     void Update()
@@ -43,13 +48,22 @@ public class PlayerController : MonoBehaviour
         Movement();
 
         Sprint();
+
+        if(_moveVector != Vector3.zero)
+        {
+            animator.SetBool("isRunning", true);
+        }
+        else
+        {
+            animator.SetBool("isRunning", false);
+        }
     }
 
     void Jump()
     {
         if (Input.GetKeyDown(KeyCode.Space) && _characterController.isGrounded)
         {
-            Debug.Log("Jump");
+            animator.SetBool("isGrounded", false);
             _fallVelocity = -jumpForce;
         }
     }
